@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Graft | Rename Relume class namespaces for Webflow</title>
+<meta name="description" content="Paste a copied Webflow section or component, rename its class namespaces, and paste it back. Utility classes and CSS are never touched. Runs in your browser.">
+<meta name="theme-color" content="#0C1113">
+<meta name="color-scheme" content="light">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2213%22%20fill%3D%22%230B5F5A%22/%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23FCFDFC%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M12%2019h5c8%200%209%2013%2017%2013h18%22/%3E%3Cpath%20d%3D%22M12%2045h5c8%200%209-13%2017-13%22/%3E%3C/g%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2213%22%20fill%3D%22%230B5F5A%22/%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23FCFDFC%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M12%2019h5c8%200%209%2013%2017%2013h18%22/%3E%3Cpath%20d%3D%22M12%2045h5c8%200%209-13%2017-13%22/%3E%3C/g%3E%3C/svg%3E">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Graft | Rename Relume class namespaces for Webflow">
+<meta property="og:description" content="Paste a copied Webflow section or component, rename its class namespaces, and paste it back. Utility classes and CSS are never touched.">
+<meta property="og:image" content="REPLACE_WITH_YOUR_URL/og-image.png">
+<meta property="og:url" content="REPLACE_WITH_YOUR_URL">
+<meta property="og:site_name" content="Graft">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Graft | Rename Relume class namespaces for Webflow">
+<meta name="twitter:description" content="Paste a copied Webflow section or component, rename its class namespaces, and paste it back.">
+<meta name="twitter:image" content="REPLACE_WITH_YOUR_URL/og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------
+   Graft - rename Webflow class namespaces
+   Scoped under .graft so it can live in a Webflow Embed safely.
+   --------------------------------------------------------------- */
+
+.graft {
+  --bg:      #0C1113;
+  --card:    #FBFCFB;
+  --ink:     #0F1518;
+  --muted:   #6E7674;
+  --line:    #E3E6E3;
+  --line-2:  #D2D7D3;
+  --accent:  #0B5F5A;
+  --accent-b:#17A79E;
+  --soft:    rgba(11,95,90,.07);
+  --warn:    #A9581C;
+
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display: "Archivo", var(--mono);
+
+  box-sizing: border-box;
+  font-family: var(--mono);
+  color: var(--ink);
+  background:
+    radial-gradient(900px 460px at 50% -8%, rgba(23,167,158,.20), transparent 62%),
+    radial-gradient(700px 400px at 88% 108%, rgba(11,95,90,.16), transparent 60%),
+    var(--bg);
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: clamp(26px,5vw,56px) 18px;
+  -webkit-font-smoothing: antialiased;
+}
+.graft *, .graft *::before, .graft *::after { box-sizing: border-box; }
+
+/* ---- brand, above the card ---- */
+.g-brand { text-align: center; }
+.g-brand-row { display: flex; align-items: center; justify-content: center; gap: 11px; }
+.g-mark { width: 34px; height: 23px; color: var(--accent-b); flex: none; }
+.g-name {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(26px,5vw,36px); letter-spacing: -.04em;
+  line-height: 1; margin: 0; color: #fff;
+}
+.g-tagline {
+  margin: 9px 0 0; font-size: 12.5px; line-height: 1.5;
+  color: rgba(255,255,255,.5); letter-spacing: .01em;
+}
+
+/* ---- card ---- */
+.g-card {
+  width: 100%; max-width: 580px;
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: 0 34px 80px -24px rgba(0,0,0,.62), 0 2px 10px rgba(0,0,0,.28);
+  padding: clamp(20px,3.2vw,30px);
+  transition: max-width .45s cubic-bezier(.2,.75,.3,1);
+}
+.g-card.is-loaded { max-width: 1020px; }
+
+/* ---- paste target ---- */
+.g-drop {
+  border: 1.5px dashed var(--line-2);
+  border-radius: 14px;
+  background: #fff;
+  padding: clamp(26px,4.5vw,42px) 20px;
+  text-align: center;
+  transition: border-color .2s ease, background .2s ease, padding .3s ease, transform .18s ease;
+}
+.g-drop.is-armed { border-color: var(--accent); background: var(--soft); transform: scale(1.008); }
+.g-drop.is-set {
+  border-style: solid; border-color: var(--accent);
+  background: var(--soft); padding: 18px 20px;
+}
+.g-badge {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 1.5px solid var(--line-2); background: #fff; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 17px;
+  transition: all .25s ease;
+}
+.g-badge svg { width: 23px; height: 23px; display: block; }
+.g-drop.is-armed .g-badge { border-color: var(--accent); color: var(--accent); }
+.g-drop.is-set .g-badge {
+  width: 42px; height: 42px; margin-bottom: 11px;
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.g-drop.is-set .g-badge svg { width: 19px; height: 19px; }
+.g-i-check { display: none; }
+.g-drop.is-set .g-i-clip { display: none; }
+.g-drop.is-set .g-i-check { display: block; }
+
+.g-prompt { font-size: 14px; line-height: 2.2; color: var(--ink); font-weight: 500; }
+.g-loaded { display: none; font-size: 13.5px; color: var(--accent); font-weight: 600; }
+.g-drop.is-set .g-prompt { display: none; }
+.g-drop.is-set .g-loaded { display: block; }
+.g-sub { font-size: 11.5px; color: var(--muted); font-weight: 400; margin-top: 5px; line-height: 1.5; }
+.g-plus { color: var(--muted); margin: 0 3px; font-size: 12px; }
+
+/* ---- keycaps ---- */
+.g-kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; height: 31px; padding: 0 10px; margin: 0 2px;
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+  color: var(--ink); background: #fff;
+  border: 1px solid var(--line-2); border-bottom: 3px solid #C8CEC9;
+  border-radius: 8px; vertical-align: middle;
+  transition: transform .07s ease, border-bottom-width .07s ease,
+              background .14s ease, color .14s ease, border-color .14s ease;
+}
+.g-kbd.is-down {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+
+/* ---- notice ---- */
+.g-flag {
+  margin-top: 16px; padding: 11px 13px; border-radius: 9px;
+  background: rgba(169,88,28,.08); border-left: 2px solid var(--warn);
+  font-size: 11.5px; line-height: 1.6; color: var(--warn);
+}
+.g-flag:empty { display: none; }
+
+/* ---- panels, only once something is loaded ---- */
+.g-panels { display: none; }
+.g-card.is-loaded .g-panels {
+  display: grid;
+  grid-template-columns: minmax(0,320px) minmax(0,1fr);
+  gap: 30px; margin-top: 26px;
+}
+.g-panel { min-width: 0; }
+.g-phead {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 10px; letter-spacing: .11em; text-transform: uppercase; color: var(--muted);
+  padding-bottom: 9px; border-bottom: 1px solid var(--line); margin-bottom: 4px;
+}
+.g-count { color: var(--accent); font-weight: 600; }
+.g-count.is-zero { color: var(--muted); }
+
+/* ---- rename rows ---- */
+.g-rename { padding: 13px 0; border-bottom: 1px solid var(--line); }
+.g-rename:last-child { border-bottom: 0; }
+.g-from { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.g-from-name { font-size: 13.5px; font-weight: 600; word-break: break-all; }
+.g-from-n { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.g-rename.is-on .g-from-name { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.g-input {
+  width: 100%; font-family: var(--mono); font-size: 13px; font-weight: 500;
+  color: var(--ink); background: #fff;
+  border: 1.5px solid var(--line-2); border-radius: 9px;
+  padding: 10px 12px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.g-input::placeholder { color: #B4BAB6; font-weight: 400; }
+.g-input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--soft); }
+.g-rename.is-on .g-input { border-color: var(--accent); }
+
+/* ---- class list ---- */
+.g-rows { max-height: 340px; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+.g-rows::-webkit-scrollbar { width: 8px; }
+.g-rows::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 99px; }
+.g-row {
+  display: grid; grid-template-columns: minmax(0,1fr) 16px minmax(0,1fr);
+  gap: 8px; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid #F0F2F0;
+  font-size: 12.5px; line-height: 1.45;
+}
+.g-row:last-child { border-bottom: 0; }
+.g-row.is-skip { color: var(--muted); }
+.g-old { color: var(--muted); word-break: break-all; }
+.g-new { color: var(--ink); word-break: break-all; }
+.g-row.is-skip .g-new { color: var(--muted); }
+.g-arrow { color: var(--line-2); text-align: center; font-size: 11px; }
+.g-row.is-skip .g-arrow { opacity: .4; }
+.g-seg { background: var(--soft); color: var(--accent); font-weight: 600; padding: 1px 3px; border-radius: 3px; margin: 0 -1px; }
+.g-old .g-seg { background: transparent; color: var(--ink); font-weight: 500; }
+.g-divider {
+  font-size: 10px; letter-spacing: .11em; text-transform: uppercase; color: var(--muted);
+  padding: 15px 0 7px; border-bottom: 1px solid var(--line); margin-bottom: 3px;
+}
+.g-empty { padding: 24px 0; text-align: center; font-size: 12.5px; color: var(--muted); }
+
+/* ---- actions ---- */
+.g-foot { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.g-card:not(.is-loaded) .g-foot { display: none; }
+.g-actions { display: flex; gap: 10px; }
+.g-btn {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  border-radius: 10px; padding: 13px 20px; cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, transform .08s ease;
+}
+.g-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.g-primary { flex: 1; background: var(--ink); color: #fff; border: 1.5px solid var(--ink); }
+.g-primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.g-primary:active:not(:disabled) { transform: translateY(1px); }
+.g-primary.is-done, .g-primary.is-done:hover { background: var(--accent); border-color: var(--accent); }
+.g-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--line-2); }
+.g-ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--ink); }
+.g-btn:disabled { opacity: .35; cursor: not-allowed; }
+.g-status {
+  margin-top: 13px; min-height: 1.3em;
+  font-size: 12.5px; line-height: 1.45; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.g-status svg { width: 15px; height: 15px; flex: none; }
+.g-status.is-ok  { color: var(--accent); font-weight: 600; }
+.g-status.is-bad { color: var(--warn); font-weight: 600; }
+
+/* ---- note under the card ---- */
+.g-note {
+  max-width: 580px; text-align: center;
+  font-size: 11.5px; line-height: 1.75;
+  color: rgba(255,255,255,.42); margin: 0;
+}
+.g-note b { color: rgba(255,255,255,.72); font-weight: 600; }
+.g-code {
+  font-size: 10.5px; background: rgba(255,255,255,.09);
+  padding: 2px 6px; border-radius: 4px; color: rgba(255,255,255,.75);
+}
+
+/* ---- toast: no var() here, this sits outside .graft ---- */
+.g-toasts {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  z-index: 2147483000;
+  display: flex; flex-direction: column-reverse; gap: 8px; align-items: center;
+  pointer-events: none; width: calc(100% - 32px); max-width: 460px;
+}
+.g-toast {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13.5px; font-weight: 600; line-height: 1.4;
+  display: flex; align-items: center; gap: 10px;
+  background: #0F1518; color: #FFFFFF;
+  border: 2px solid #0F1518; border-radius: 11px;
+  box-shadow: 0 12px 38px rgba(0,0,0,.45);
+  padding: 14px 20px; text-align: left;
+  opacity: 0; transform: translateY(14px) scale(.97);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.g-toast.is-in { opacity: 1; transform: translateY(0) scale(1); }
+.g-toast.is-ok  { background: #0B5F5A; border-color: #0B5F5A; color: #FFFFFF; }
+.g-toast.is-bad { background: #A9581C; border-color: #A9581C; color: #FFFFFF; }
+.g-toast svg { width: 17px; height: 17px; flex: none; }
+
+.g-sink {
+  position: fixed; top: 0; left: 0; width: 1px; height: 1px;
+  padding: 0; border: 0; opacity: 0; pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .g-card.is-loaded .g-panels { grid-template-columns: minmax(0,1fr); gap: 26px; }
+}
+@media (max-width: 520px) {
+  .graft { padding: 22px 14px 44px; gap: 18px; }
+  .g-card { border-radius: 14px; }
+  .g-row { grid-template-columns: minmax(0,1fr); gap: 3px; }
+  .g-arrow { display: none; }
+  .g-new::before { content: "\21B3 "; color: var(--line-2); }
+  .g-actions { flex-direction: column-reverse; }
+  .g-prompt { line-height: 2.4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .graft *, .graft *::before, .graft *::after {
+    transition-duration: .001ms !important; animation-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="graft">
+
+  <div class="g-brand">
+    <div class="g-brand-row">
+      <svg class="g-mark" viewBox="0 0 30 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <path d="M2 4h6c5 0 6 6 11 6h9"/><path d="M2 16h6c5 0 6-6 11-6"/>
+      </svg>
+      <h1 class="g-name">Graft</h1>
+    </div>
+    <p class="g-tagline">Rename Relume class namespaces for Webflow</p>
+  </div>
+
+  <div class="g-card" id="card">
+
+    <div class="g-drop" id="drop">
+      <div class="g-badge" aria-hidden="true">
+        <svg class="g-i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2.5"/>
+          <path d="M8 6.4V4.5a.5.5 0 0 1 .5-.5c.276 0 .504-.224.552-.496C9.2 2.652 9.774 1 12 1s2.8 1.652 2.948 2.504c.048.272.276.496.552.496a.5.5 0 0 1 .5.5v1.9a.6.6 0 0 1-.6.6H8.6a.6.6 0 0 1-.6-.6Z"/>
+        </svg>
+        <svg class="g-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12.5 9 17.5 20 6.5"/>
+        </svg>
+      </div>
+
+      <div class="g-prompt" id="dropText">
+        Press <kbd class="g-kbd" id="keyMod">Ctrl</kbd><span class="g-plus">+</span><kbd class="g-kbd" id="keyV">V</kbd> anywhere to paste
+        <div class="g-sub">A section, component, or group of elements copied in Webflow</div>
+      </div>
+
+      <div class="g-loaded">
+        <span id="loadedLine"></span>
+        <div class="g-sub">Paste again to swap in something else</div>
+      </div>
+    </div>
+
+    <div class="g-flag" id="flag"></div>
+
+    <div class="g-panels">
+      <section class="g-panel">
+        <div class="g-phead">
+          <span>Rename</span>
+          <span class="g-count is-zero" id="nsCount">none yet</span>
+        </div>
+        <div id="renames"></div>
+      </section>
+
+      <section class="g-panel">
+        <div class="g-phead">
+          <span>Every class in this paste</span>
+          <span class="g-count is-zero" id="count">nothing loaded</span>
+        </div>
+        <div class="g-rows" id="rows"></div>
+      </section>
+    </div>
+
+    <div class="g-foot">
+      <div class="g-actions">
+        <button class="g-btn g-ghost" id="clearBtn" disabled>Start over</button>
+        <button class="g-btn g-primary" id="copyBtn" disabled>Copy for Webflow</button>
+      </div>
+      <div class="g-status" id="status"></div>
+    </div>
+
+  </div>
+
+  <p class="g-note">
+    Every namespace gets its own box. Fill in the ones you want renamed, leave the rest blank.
+    Utility classes like <span class="g-code">padding-global</span> are never touched, no CSS is
+    ever removed, and interaction targets follow the rename. Nothing is uploaded anywhere.
+  </p>
+
+</div>
+
+<div class="g-toasts" id="toasts" role="status" aria-live="polite"></div>
+<textarea class="g-sink" id="sink" aria-hidden="true" tabindex="-1"></textarea>
+
+<script>
+(function () {
+  "use strict";
+
+  var card     = document.getElementById('card');
+  var drop     = document.getElementById('drop');
+  var keyMod   = document.getElementById('keyMod');
+  var keyV     = document.getElementById('keyV');
+  var loadedLine = document.getElementById('loadedLine');
+  var flag     = document.getElementById('flag');
+  var renames  = document.getElementById('renames');
+  var nsCount  = document.getElementById('nsCount');
+  var rows     = document.getElementById('rows');
+  var count    = document.getElementById('count');
+  var clearBtn = document.getElementById('clearBtn');
+  var copyBtn  = document.getElementById('copyBtn');
+  var toasts   = document.getElementById('toasts');
+  var status   = document.getElementById('status');
+  var sink     = document.getElementById('sink');
+
+  var loaded = null;   // parsed clipboard payload
+  var fields = [];     // one entry per namespace
+
+  /* ---------------------------------------------------------- */
+  /* helpers                                                     */
+  /* ---------------------------------------------------------- */
+
+  var TICK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9 17.5 20 6.5"/></svg>';
+  var ALERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.2"/></svg>';
+
+  function toast(message, kind) {
+    var el = document.createElement('div');
+    el.className = 'g-toast' + (kind ? ' is-' + kind : '');
+    if (kind === 'ok') el.innerHTML = TICK;
+    else if (kind === 'bad') el.innerHTML = ALERT;
+    el.appendChild(document.createTextNode(message));
+    toasts.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('is-in'); });
+    setTimeout(function () {
+      el.classList.remove('is-in');
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+    }, 4200);
+  }
+
+  // The toast fades. This line stays, so the result is still there
+  // whenever you look back at it.
+  function setStatus(message, kind) {
+    status.className = 'g-status' + (kind ? ' is-' + kind : '');
+    status.innerHTML = '';
+    if (!message) return;
+    if (kind === 'ok') status.innerHTML = TICK;
+    else if (kind === 'bad') status.innerHTML = ALERT;
+    status.appendChild(document.createTextNode(message));
+  }
+
+  var doneTimer = null;
+  function flashButton(label) {
+    if (doneTimer) { clearTimeout(doneTimer); doneTimer = null; }
+    copyBtn.classList.add('is-done');
+    copyBtn.textContent = label;
+    doneTimer = setTimeout(function () {
+      copyBtn.classList.remove('is-done');
+      copyBtn.textContent = 'Copy for Webflow';
+      doneTimer = null;
+    }, 2600);
+  }
+
+  function isMac() {
+    var p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '';
+    return /mac|iphone|ipad|ipod/i.test(p);
+  }
+
+  function clone(obj) {
+    if (typeof structuredClone === 'function') {
+      try { return structuredClone(obj); } catch (e) {}
+    }
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function normalise(v) {
+    return v.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '');
+  }
+
+  /* ---------------------------------------------------------- */
+  /* namespace detection                                         */
+  /* ---------------------------------------------------------- */
+
+  // Whatever sits before the first underscore, with a leading
+  // section_ peeled off. Utility classes are kebab-case with no
+  // underscore, so they fall out here on their own.
+  function namespaceOf(name) {
+    if (typeof name !== 'string' || !name) return '';
+    var sectioned = name.indexOf('section_') === 0;
+    var bare = sectioned ? name.slice('section_'.length) : name;
+    if (!bare) return '';
+    var cut = bare.indexOf('_');
+    if (cut > 0) return bare.slice(0, cut);
+    return sectioned ? bare : '';
+  }
+
+  function detectCandidates(payload) {
+    var styles = payload.styles || [];
+    var nodes  = payload.nodes || [];
+    var byId = {}, onRoot = {}, score = {}, tally = {}, order = [];
+    var i, j, s, ns, name;
+
+    for (i = 0; i < styles.length; i++) {
+      s = styles[i];
+      if (s && typeof s._id === 'string') byId[s._id] = s.name;
+    }
+    if (nodes.length && Array.isArray(nodes[0].classes)) {
+      for (j = 0; j < nodes[0].classes.length; j++) {
+        name = byId[nodes[0].classes[j]];
+        if (name) onRoot[name] = true;
+      }
+    }
+    for (i = 0; i < styles.length; i++) {
+      name = styles[i] && styles[i].name;
+      ns = namespaceOf(name);
+      if (!ns) continue;
+      if (!(ns in score)) { score[ns] = 0; tally[ns] = 0; order.push(ns); }
+      tally[ns] += 1;
+      score[ns] += 1;
+      if (onRoot[name]) score[ns] += 60;
+      if (/_component$/.test(name)) score[ns] += 40;
+      if (name.indexOf('section_') === 0) score[ns] += 20;
+    }
+
+    var list = order.map(function (ns) {
+      return { id: ns, count: tally[ns], score: score[ns] };
+    }).sort(function (a, b) {
+      return (b.score - a.score) || (b.count - a.count) || a.id.localeCompare(b.id);
+    });
+
+    // Recount with the same matcher the rename uses, otherwise the
+    // badge lies: contact1-form-wrapper has no underscore so it never
+    // showed up above, but it does get renamed. Longest id wins, so
+    // form-field members are not counted as form.
+    var byLength = list.slice().sort(function (a, b) { return b.id.length - a.id.length; });
+    var real = {};
+    for (i = 0; i < list.length; i++) real[list[i].id] = 0;
+    for (i = 0; i < styles.length; i++) {
+      name = styles[i] && styles[i].name;
+      if (typeof name !== 'string' || !name) continue;
+      for (j = 0; j < byLength.length; j++) {
+        if (split(name, byLength[j].id)) { real[byLength[j].id]++; break; }
+      }
+    }
+    for (i = 0; i < list.length; i++) list[i].count = real[list[i].id];
+
+    return list;
+  }
+
+  /* ---------------------------------------------------------- */
+  /* matching and renaming                                       */
+  /* ---------------------------------------------------------- */
+
+  // Anchored on purpose. A plain substring match would rewrite
+  // unrelated classes that merely contain the namespace.
+  function split(name, id) {
+    if (!id || typeof name !== 'string') return null;
+
+    var sectioned = 'section_' + id;
+    if (name === sectioned) return { before: 'section_', after: '' };
+    if (name.indexOf(sectioned) === 0) {
+      var a = name.slice(sectioned.length);
+      if (a.charAt(0) === '_' || a.charAt(0) === '-') return { before: 'section_', after: a };
+    }
+    if (name === id) return { before: '', after: '' };
+    if (name.indexOf(id) === 0) {
+      var b = name.slice(id.length);
+      if (b.charAt(0) === '_' || b.charAt(0) === '-') return { before: '', after: b };
+    }
+    return null;
+  }
+
+  // Longest namespace first, so "form-field" wins over "form".
+  function matchFor(name, active) {
+    for (var i = 0; i < active.length; i++) {
+      var parts = split(name, active[i].id);
+      if (parts) return { rule: active[i], parts: parts };
+    }
+    return null;
+  }
+
+  function activeRules() {
+    var out = [];
+    for (var i = 0; i < fields.length; i++) {
+      var next = fields[i].input.value.trim();
+      if (next && next !== fields[i].id) out.push({ id: fields[i].id, next: next });
+    }
+    out.sort(function (a, b) { return b.id.length - a.id.length; });
+    return out;
+  }
+
+  // Interaction targets hold literal selector strings like
+  // ".contact1_component" alongside their guids. The guids still
+  // point at the right styles, but these strings would go stale.
+  function rewriteSelectors(node, map) {
+    var i, keys, k, v;
+    if (Array.isArray(node)) {
+      for (i = 0; i < node.length; i++) rewriteSelectors(node[i], map);
+      return;
+    }
+    if (node && typeof node === 'object') {
+      keys = Object.keys(node);
+      for (i = 0; i < keys.length; i++) {
+        k = keys[i]; v = node[k];
+        if (k === 'selector' && typeof v === 'string' && v.charAt(0) === '.' && map[v.slice(1)]) {
+          node[k] = '.' + map[v.slice(1)];
+        } else if (v && typeof v === 'object') {
+          rewriteSelectors(v, map);
+        }
+      }
+    }
+  }
+
+  /* ---------------------------------------------------------- */
+  /* rendering                                                   */
+  /* ---------------------------------------------------------- */
+
+  function segment(parts, id, target) {
+    if (parts.before) target.appendChild(document.createTextNode(parts.before));
+    var mark = document.createElement('span');
+    mark.className = 'g-seg';
+    mark.textContent = id;
+    target.appendChild(mark);
+    if (parts.after) target.appendChild(document.createTextNode(parts.after));
+  }
+
+  function buildRow(name, hit) {
+    var el = document.createElement('div');
+    el.className = 'g-row' + (hit ? '' : ' is-skip');
+
+    var oldCell = document.createElement('div');
+    oldCell.className = 'g-old';
+    if (hit) segment(hit.parts, hit.rule.id, oldCell); else oldCell.textContent = name;
+
+    var arrow = document.createElement('div');
+    arrow.className = 'g-arrow';
+    arrow.textContent = hit ? '\u2192' : '\u00b7';
+
+    var newCell = document.createElement('div');
+    newCell.className = 'g-new';
+    if (hit) segment(hit.parts, hit.rule.next, newCell); else newCell.textContent = name;
+
+    el.appendChild(oldCell);
+    el.appendChild(arrow);
+    el.appendChild(newCell);
+    return el;
+  }
+
+  function render() {
+    rows.innerHTML = '';
+
+    if (!loaded) {
+      rows.innerHTML = '<div class="g-empty">Nothing pasted yet.</div>';
+      count.textContent = 'nothing loaded';
+      count.className = 'g-count is-zero';
+      copyBtn.disabled = true;
+      return;
+    }
+
+    var styles = loaded.payload.styles;
+    var active = activeRules();
+    var changed = [], untouched = [];
+    var i, name, hit;
+
+    for (i = 0; i < styles.length; i++) {
+      name = styles[i] && styles[i].name;
+      if (typeof name !== 'string' || !name) continue;
+      hit = matchFor(name, active);
+      if (hit) changed.push({ name: name, hit: hit });
+      else untouched.push(name);
+    }
+
+    var frag = document.createDocumentFragment();
+    for (i = 0; i < changed.length; i++) frag.appendChild(buildRow(changed[i].name, changed[i].hit));
+    if (changed.length && untouched.length) {
+      var div = document.createElement('div');
+      div.className = 'g-divider';
+      div.textContent = untouched.length + ' left alone';
+      frag.appendChild(div);
+    }
+    for (i = 0; i < untouched.length; i++) frag.appendChild(buildRow(untouched[i], null));
+    rows.appendChild(frag);
+
+    var total = changed.length + untouched.length;
+    if (!active.length) {
+      count.textContent = total + ' classes, none renamed yet';
+      count.className = 'g-count is-zero';
+    } else {
+      count.textContent = changed.length + ' of ' + total + ' will be renamed';
+      count.className = 'g-count' + (changed.length ? '' : ' is-zero');
+    }
+
+    for (i = 0; i < fields.length; i++) {
+      fields[i].row.classList.toggle('is-on', !!fields[i].input.value.trim());
+    }
+
+    copyBtn.disabled = changed.length === 0;
+  }
+
+  function buildFields(cands) {
+    renames.innerHTML = '';
+    fields = [];
+
+    if (!cands.length) {
+      renames.innerHTML = '<div class="g-empty">No namespaced classes here. Only utilities were pasted.</div>';
+      nsCount.textContent = 'none';
+      nsCount.className = 'g-count is-zero';
+      return;
+    }
+
+    nsCount.textContent = cands.length + (cands.length === 1 ? ' namespace' : ' namespaces');
+    nsCount.className = 'g-count';
+
+    cands.forEach(function (c, idx) {
+      var row = document.createElement('div');
+      row.className = 'g-rename';
+
+      var from = document.createElement('div');
+      from.className = 'g-from';
+      var fname = document.createElement('span');
+      fname.className = 'g-from-name';
+      fname.textContent = c.id;
+      var fn = document.createElement('span');
+      fn.className = 'g-from-n';
+      fn.textContent = c.count + (c.count === 1 ? ' class' : ' classes');
+      from.appendChild(fname);
+      from.appendChild(fn);
+
+      var input = document.createElement('input');
+      input.className = 'g-input';
+      input.type = 'text';
+      input.placeholder = 'leave blank to keep';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.id = 'ns' + idx;
+      input.setAttribute('aria-label', 'New name for ' + c.id);
+
+      input.addEventListener('input', function () {
+        var pos = input.selectionStart;
+        var before = input.value;
+        var after = normalise(before);
+        if (before !== after) {
+          var d = before.length - after.length;
+          input.value = after;
+          try { input.setSelectionRange(pos - d, pos - d); } catch (e) {}
+        }
+        render();
+      });
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); copyBtn.click(); }
+      });
+
+      row.appendChild(from);
+      row.appendChild(input);
+      renames.appendChild(row);
+
+      fields.push({ id: c.id, count: c.count, input: input, row: row });
+    });
+  }
+
+  /* ---------------------------------------------------------- */
+  /* state                                                       */
+  /* ---------------------------------------------------------- */
+
+  function load(data) {
+    loaded = data;
+    var styles = data.payload.styles;
+    var els = (data.payload.nodes || []).length;
+    var cands = detectCandidates(data.payload);
+
+    card.classList.add('is-loaded');
+    drop.classList.add('is-set');
+    loadedLine.textContent = styles.length + ' ' + (styles.length === 1 ? 'class' : 'classes')
+      + ', ' + els + ' ' + (els === 1 ? 'element' : 'elements') + ' loaded';
+
+    buildFields(cands);
+    clearBtn.disabled = false;
+    setStatus('');
+
+    var notes = [];
+    var comps = styles.filter(function (s) { return s && /_component$/.test(s.name || ''); });
+    if (comps.length > 1) {
+      notes.push('There are ' + comps.length + ' component classes here, so this holds nested components. '
+        + 'Each one gets its own box.');
+    }
+    var defs = data.payload.components;
+    if (Array.isArray(defs) && defs.length) {
+      notes.push('This includes ' + defs.length + ' Webflow component definition'
+        + (defs.length === 1 ? '' : 's') + '. Classes inside a component are shared by every instance.');
+    }
+    flag.textContent = notes.join(' ');
+
+    render();
+    if (fields.length) fields[0].input.focus();
+    if (!cands.length) toast('No namespaced classes found in that paste.', 'bad');
+  }
+
+  function clear() {
+    loaded = null;
+    fields = [];
+    card.classList.remove('is-loaded');
+    drop.classList.remove('is-set');
+    renames.innerHTML = '';
+    nsCount.textContent = 'none yet';
+    nsCount.className = 'g-count is-zero';
+    flag.textContent = '';
+    clearBtn.disabled = true;
+    setStatus('');
+    render();
+  }
+
+  /* ---------------------------------------------------------- */
+  /* paste in                                                    */
+  /* ---------------------------------------------------------- */
+
+  function ingest(raw, complain) {
+    raw = (raw || '').trim();
+    if (!raw) return false;
+
+    var data = null;
+    if (raw.charAt(0) === '{') {
+      try { data = JSON.parse(raw); } catch (e) { data = null; }
+    }
+    if (data && data.payload && Array.isArray(data.payload.styles) && data.payload.styles.length) {
+      load(data);
+      toast('Loaded.', 'ok');
+      return true;
+    }
+    if (complain) {
+      if (raw.charAt(0) !== '{') toast('That is not a copied Webflow element.', 'bad');
+      else if (!data) toast('Clipboard content is not valid JSON.', 'bad');
+      else toast('No Webflow classes in that clipboard content.', 'bad');
+    }
+    return false;
+  }
+
+  document.addEventListener('paste', function (e) {
+    if (!e.clipboardData) return;
+    var el = document.activeElement;
+    var inField = !!(el && el.classList && el.classList.contains('g-input'));
+    var raw = e.clipboardData.getData('application/json') || e.clipboardData.getData('text/plain') || '';
+    // A real payload always wins, so pasting again works even when a
+    // name box has focus.
+    if (ingest(raw, !inField)) e.preventDefault();
+  });
+
+  /* ---------------------------------------------------------- */
+  /* copy out                                                    */
+  /* ---------------------------------------------------------- */
+
+  function writeClipboard(text) {
+    var handler = function (e) {
+      e.preventDefault();
+      e.clipboardData.setData('text/plain', text);
+      e.clipboardData.setData('application/json', text);
+    };
+    sink.value = text;
+    sink.removeAttribute('aria-hidden');
+    sink.focus();
+    sink.select();
+    try { sink.setSelectionRange(0, text.length); } catch (e) {}
+
+    document.addEventListener('copy', handler);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.removeEventListener('copy', handler);
+
+    sink.value = '';
+    sink.blur();
+    sink.setAttribute('aria-hidden', 'true');
+    return ok;
+  }
+
+  copyBtn.addEventListener('click', function () {
+    if (!loaded) return;
+    var active = activeRules();
+    if (!active.length) {
+      toast('Fill in at least one new name first.', 'bad');
+      setStatus('Nothing to copy yet. Type a new name next to a namespace.', 'bad');
+      return;
+    }
+
+    var data, styles, map, changed, i, name, hit;
+    try {
+      data = clone(loaded);
+      styles = data.payload.styles;
+      map = {};
+      changed = 0;
+
+      for (i = 0; i < styles.length; i++) {
+        name = styles[i] && styles[i].name;
+        if (typeof name !== 'string') continue;
+        hit = matchFor(name, active);
+        if (!hit) continue;
+        var renamed = hit.parts.before + hit.rule.next + hit.parts.after;
+        if (renamed === name) continue;
+        styles[i].name = renamed;
+        map[name] = renamed;
+        changed++;
+      }
+
+      if (!changed) {
+        toast('Nothing matched those names.', 'bad');
+        setStatus('Nothing matched those names.', 'bad');
+        return;
+      }
+      rewriteSelectors(data.payload, map);
+    } catch (e) {
+      toast('Could not rename that.', 'bad');
+      setStatus('Could not rename that.', 'bad');
+      return;
+    }
+
+    var ok = writeClipboard(JSON.stringify(data));
+    if (!ok) {
+      toast('Your browser blocked the copy. Click the button again.', 'bad');
+      setStatus('Copy was blocked by the browser. Click the button again.', 'bad');
+      return;
+    }
+
+    var word = changed === 1 ? 'class' : 'classes';
+    toast('Copied. ' + changed + ' ' + word + ' renamed. Paste into Webflow now.', 'ok');
+    setStatus('Copied to your clipboard. ' + changed + ' ' + word + ' renamed. Go to Webflow and paste.', 'ok');
+    flashButton('Copied');
+  });
+
+  clearBtn.addEventListener('click', function () { clear(); toast('Cleared.'); });
+
+  /* ---------------------------------------------------------- */
+  /* live keycaps                                                */
+  /* ---------------------------------------------------------- */
+
+  // The caps are permanent elements and only ever get a class
+  // toggled. Nothing rewrites the markup around them, so the
+  // references can never go stale.
+  function release() {
+    keyMod.classList.remove('is-down');
+    keyV.classList.remove('is-down');
+    drop.classList.remove('is-armed');
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { if (loaded) clear(); return; }
+    if (e.key === 'Control' || e.key === 'Meta') keyMod.classList.add('is-down');
+    if (e.key && e.key.toLowerCase() === 'v') keyV.classList.add('is-down');
+    if (keyMod.classList.contains('is-down') && keyV.classList.contains('is-down')) {
+      drop.classList.add('is-armed');
+    }
+  });
+
+  document.addEventListener('keyup', function (e) {
+    // macOS does not fire keyup for most keys while Cmd is held, so
+    // release both rather than tracking them apart.
+    if (e.key === 'Control' || e.key === 'Meta' || (e.key && e.key.toLowerCase() === 'v')) release();
+  });
+  window.addEventListener('blur', release);
+
+  /* ---------------------------------------------------------- */
+  /* boot                                                        */
+  /* ---------------------------------------------------------- */
+
+  if (isMac()) keyMod.textContent = 'Cmd';
+  render();
+})();
+</script>
+
+</body>
+</html>
