@@ -25,7 +25,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ---------------------------------------------------------------
    Graft - rename Webflow class namespaces
@@ -44,11 +44,14 @@
   --soft:    rgba(11,95,90,.07);
   --warn:    #A9581C;
 
-  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --display: "Archivo", var(--mono);
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display: "Geist", var(--mono);
 
   box-sizing: border-box;
   font-family: var(--mono);
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1;
   color: var(--ink);
   background:
     radial-gradient(900px 460px at 50% -8%, rgba(23,167,158,.20), transparent 62%),
@@ -71,13 +74,13 @@
 .g-brand-row { display: flex; align-items: center; justify-content: center; gap: 11px; }
 .g-mark { width: 34px; height: 23px; color: var(--accent-b); flex: none; }
 .g-name {
-  font-family: var(--display); font-weight: 800;
-  font-size: clamp(26px,5vw,36px); letter-spacing: -.04em;
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(26px,5vw,36px); letter-spacing: -.02em;
   line-height: 1; margin: 0; color: #fff;
 }
 .g-tagline {
   margin: 9px 0 0; font-size: 12.5px; line-height: 1.5;
-  color: rgba(255,255,255,.5); letter-spacing: .01em;
+  color: rgba(255,255,255,.5);
 }
 
 /* ---- card ---- */
@@ -109,19 +112,27 @@
   width: 56px; height: 56px; border-radius: 50%;
   border: 1.5px solid var(--line-2); background: #fff; color: var(--muted);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 17px;
-  transition: all .25s ease;
+  margin: 0 auto 17px; position: relative;
+  transition: width .25s ease, height .25s ease, margin-bottom .25s ease,
+              background .25s ease, border-color .25s ease, color .25s ease;
 }
-.g-badge svg { width: 23px; height: 23px; display: block; }
+.g-badge svg {
+  width: 23px; height: 23px; display: block;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(1);
+  opacity: 1; filter: blur(0px);
+  transition: opacity .2s cubic-bezier(.2,0,0,1), transform .2s cubic-bezier(.2,0,0,1),
+              filter .2s cubic-bezier(.2,0,0,1), width .25s ease, height .25s ease;
+}
 .g-drop.is-armed .g-badge { border-color: var(--accent); color: var(--accent); }
 .g-drop.is-set .g-badge {
   width: 42px; height: 42px; margin-bottom: 11px;
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
 .g-drop.is-set .g-badge svg { width: 19px; height: 19px; }
-.g-i-check { display: none; }
-.g-drop.is-set .g-i-clip { display: none; }
-.g-drop.is-set .g-i-check { display: block; }
+.g-i-check { opacity: 0; transform: translate(-50%,-50%) scale(.25); filter: blur(4px); }
+.g-drop.is-set .g-i-clip { opacity: 0; transform: translate(-50%,-50%) scale(.25); filter: blur(4px); }
+.g-drop.is-set .g-i-check { opacity: 1; transform: translate(-50%,-50%) scale(1); filter: blur(0px); }
 
 .g-prompt { font-size: 14px; line-height: 2.2; color: var(--ink); font-weight: 500; }
 .g-loaded { display: none; font-size: 13.5px; color: var(--accent); font-weight: 600; }
@@ -163,6 +174,12 @@
   gap: 30px; margin-top: 26px;
 }
 .g-panel { min-width: 0; }
+.g-card.is-loaded .g-panel { animation: gPanelIn .4s cubic-bezier(.2,0,0,1) both; }
+.g-card.is-loaded .g-panel + .g-panel { animation-delay: .1s; }
+@keyframes gPanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .g-phead {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   font-size: 10px; letter-spacing: .11em; text-transform: uppercase; color: var(--muted);
@@ -224,9 +241,9 @@
   transition: background .16s ease, color .16s ease, border-color .16s ease, transform .08s ease;
 }
 .g-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.g-btn:active:not(:disabled) { transform: scale(.96); }
 .g-primary { flex: 1; background: var(--ink); color: #fff; border: 1.5px solid var(--ink); }
 .g-primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
-.g-primary:active:not(:disabled) { transform: translateY(1px); }
 .g-primary.is-done, .g-primary.is-done:hover { background: var(--accent); border-color: var(--accent); }
 .g-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--line-2); }
 .g-ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--ink); }
@@ -260,8 +277,8 @@
   pointer-events: none; width: calc(100% - 32px); max-width: 460px;
 }
 .g-toast {
-  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13.5px; font-weight: 600; line-height: 1.4;
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13.5px; font-weight: 600; line-height: 1.4; letter-spacing: -.02em;
   display: flex; align-items: center; gap: 10px;
   background: #0F1518; color: #FFFFFF;
   border: 2px solid #0F1518; border-radius: 11px;
@@ -317,11 +334,11 @@
 
     <div class="g-drop" id="drop">
       <div class="g-badge" aria-hidden="true">
-        <svg class="g-i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="g-i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8.5 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2.5"/>
           <path d="M8 6.4V4.5a.5.5 0 0 1 .5-.5c.276 0 .504-.224.552-.496C9.2 2.652 9.774 1 12 1s2.8 1.652 2.948 2.504c.048.272.276.496.552.496a.5.5 0 0 1 .5.5v1.9a.6.6 0 0 1-.6.6H8.6a.6.6 0 0 1-.6-.6Z"/>
         </svg>
-        <svg class="g-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="g-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 12.5 9 17.5 20 6.5"/>
         </svg>
       </div>
@@ -405,8 +422,8 @@
   /* helpers                                                     */
   /* ---------------------------------------------------------- */
 
-  var TICK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9 17.5 20 6.5"/></svg>';
-  var ALERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.2"/></svg>';
+  var TICK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9 17.5 20 6.5"/></svg>';
+  var ALERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.2"/></svg>';
 
   function toast(message, kind) {
     var el = document.createElement('div');
